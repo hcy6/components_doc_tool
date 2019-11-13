@@ -1,0 +1,19 @@
+#spring:
+#  datasource:
+#    username: root
+#    password: Hange666
+#    url: jdbc:mysql://localhost:3306/jingdong?characterEncoding=utf-8
+#    driver-class-name: com.mysql.jdbc.Driver
+#
+#mybatis:
+#  mapper-locations: classpath:org/lanqiao/mapper/*.xml
+#  type-aliases-package: org.lanqiao.entity
+
+fileaddress: G:\JAVA\components-doc\docs\
+
+#showSql
+logging:
+  level:
+    org:
+      lanqiao:
+        mapper : debug

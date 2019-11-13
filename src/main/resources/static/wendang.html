@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/jquery-3.4.1.min1.js"></script>
+    <script src="js/vue.min2.js"></script>
+
+<script>
+    $(function () {
+    var vm= new Vue({
+    el:"#all",
+        data: {
+            Wen:[],
+            content:"",
+            cont:"",
+            WJ:[],
+
+        },
+        methods:{
+    wenjian:function () {
+        $.ajax({
+            url: "/getwen",
+            type: "post",
+            data:{},
+            datatype: "json",
+            success: function (data) {
+                for (var i=0;i<data.length;i++){
+                    vm.Wen.push({Name:data[i]});
+                }
+
+            }
+        })
+
+    },
+    shuan:function (index) {
+   var temp=$("#q").children().eq(index).text();
+   vm.cont=temp;
+        $.ajax({
+                    url: "/getr",
+                    type: "post",
+                    data:{
+                        wname:temp,
+
+                    },
+                    datatype: "json",
+                    success: function (data) {
+                       // alert(data);
+                       vm.content=data;
+
+                    }
+                })
+
+
+            },
+    updatemun:function () {
+        vm.cont="_sidebar.md";
+                $.ajax({
+                    url: "/getmun",
+                    type: "post",
+                    data:{},
+                    datatype: "json",
+                    success: function (data) {
+              vm.content=data;
+                    }
+                })
+
+            },
+     delwen:function () {
+         if(confirm("你确定要删除这条消息吗")==true){
+             $.ajax({
+                 url: "/delwen",
+                 type: "post",
+                 data:{
+                     delname:vm.cont.trim(),
+                 },
+                 datatype: "text",
+                 success: function (data) {
+                  if(data==1){
+                      alert("删除成功");
+                      vm.Wen=[];
+                      vm.wenjian();
+                  }else {alert("删除失败")}
+
+                 }
+             })
+
+         }
+
+            }
+        }
+    })
+        vm.wenjian();
+    $.ajax({
+        url:"/getall",
+        type:"post",
+        data:{},
+        datatype:"json",
+        success: function (data) {
+            alert(data.length);
+        }
+
+    })
+
+
+
+})
+
+</script>
+</head>
+<body>
+<div id="all">
+<div>
+
+    <input type="file" value="浏览">
+    <ul id="q" style="width: 500px" >
+        <li v-for="(Num,index) in Wen"  @click="shuan(index)" style="background-color: red ; width: 200px">{{Num.Name}}</li>
+    </ul>
+    <textarea name="Wen" form="w"  style="width:1000px;height: 500px; padding: 15px;" onpaste="return true;">{{content}}</textarea>
+</div>
+
+
+
+<form action="/uploadwen" id="w" method="post">
+<!--   <div >{{cont}}</div>-->
+    <input type="text" v-model="cont" name="wname" style="display: none">
+    <en>文件名：</en><input type="text" name="mname">
+    <input type="submit"  name="提交">
+    <input type="button" id="new" value="更改目录" @click="updatemun" style="margin-left: 600px">
+    <input type="button" id="del" value="删除" @click="delwen">
+</form>
+
+</div>
+</body>
+</html>
