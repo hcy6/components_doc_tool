@@ -5,28 +5,17 @@
     <script src="js/jquery-3.4.1.min1.js"></script>
     <script src="js/vue.min2.js"></script>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <!--    <link href="scripts/" rel="stylesheet" type="text/css"/>-->
     <script src="scripts/boot.js" type="text/javascript"></script>
     <link rel="stylesheet" href="editormd/css/editormd.css"/>
-    // <!--markdown -->
+   <!--markdown -->
     <script src="scripts/jquery.min.js"></script>
     <script src="editormd/editormd.min.js"></script>
 
 
     <style type="text/css">
-        body {
-            margin: 0;
-            padding: 0;
-            border: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+        html, body{
+            margin:0;padding:0;border:0;width:100%;height:100%;overflow:hidden;
         }
-
-        /*.header
-        {
-            background:url(../header.gif) repeat-x 0 -1px;
-        }*/
     </style>
     <script>
         // var vm = new Vue({
@@ -72,12 +61,14 @@
 
     <script>
         var filedat = "";
-        $(function () {
+        function onlow(data){
             var editor = editormd("test-editor", {
                 // placeholder:data,
-                // markdown : data,
+                markdown : data,
                 path: "../editormd/lib/",
             });
+        }
+        $(function () {
             mini.parse();
             var gitr = mini.get("leftTree");
             var catalog = mini.get("combobox");
@@ -101,9 +92,23 @@
                 var tabs = mini.get(mainTabs);
                 var tree = mini.get("leftTree");
                 var node = tree.getSelectedNode();
+                var list=new Array();
+                var flag=0;
+                list=tabs.getTabs();
+                for(var i=0;i<list.length;i++){
+                    if(("编辑"+node.text)==list[i].title){
+                        flag=1;
+                        break;
+                    }
+                }
                 top["win"] = window;
-                var tab = {title: "编辑" + node.text, url: 'editfile.html', showCloseButton: true};
-                tabs.activeTab(tabs.addTab(tab));
+                if(flag==0){
+                    var tab = {title: "编辑" + node.text, url: 'editfile.html',name: node.text, showCloseButton: true};
+                    tabs.activeTab(tabs.addTab(tab));
+                }else {
+                    tabs.activeTab( node.text);
+                }
+
             })
             //过滤框
             catalog.on("valuechanged", function () {
@@ -117,7 +122,7 @@
 
         });
 
-
+        //读取内容
         function gettext(n, node) {
             $.ajax({
                 url: "/gettext",
@@ -128,11 +133,8 @@
                 },
                 datatype: "json",
                 success: function (data) {
-                    var editor = editormd("test-editor", {
-                        // placeholder:data,
-                        markdown: data,
-                        path: "../editormd/lib/",
-                    });
+                    onlow(data);
+
 
                 }
             })
@@ -181,34 +183,31 @@
         function Catalog() {
             var tabs = mini.get(mainTabs);
             top["win"] = window;
-            var tab = {title: "编辑目录", url: 'catalog.html', showCloseButton: true};
-            tabs.activeTab(tabs.addTab(tab));
+            var list=new Array();
+            var flag=0;
+            list=tabs.getTabs();
+            for(var i=0;i<list.length;i++){
+                if(("编辑目录")==list[i].title){
+                    flag=1;
+                    break;
+                }
+            }
+            if(flag==0){
+                var tab = {title: "编辑目录", url: 'catalog.html',name:"编辑目录", showCloseButton: true};
+                tabs.activeTab(tabs.addTab(tab));
+            }else {
+                tabs.activeTab("编辑目录");
+            }
+
         }
 
-        // 获取内容
-        //  function  gettext(n,node) {
-        //     mini.ajax({
-        //         url: "/gettext",
-        //         type: "post",
-        //         data: {
-        //             addressname: n,
-        //             filename:node.text,
-        //         },
-        //         datatype: "json",
-        //         success: function (data) {
-        //             $("#test-editor").setText(data);
-        //             var gitr1 = mini.get("edittextbox");
-        //             gitr1.setValue(data);
-        //         }
-        //     })
-        //
-        // }
+
         // <!--    设置右键菜单栏的事件-->
         function onBeforeOpen(e) {
             var menu = e.sender;
             var tree = mini.get("leftTree");
             var node = tree.getSelectedNode();
-            var c = tree.hasChildren(node);
+            var c = tree.isLeaf(node);
             if (!node) {
                 e.cancel = true;
             }
@@ -221,7 +220,7 @@
             var editItem = mini.getbyName("add", menu);
             editItem.show();
             // removeItem.enable();
-            if (!c) {
+            if (c) {
                 editItem.hide();
             }
         }
@@ -232,28 +231,31 @@
         function onEditNode(e) {
             var tree = mini.get("leftTree");
             var node = tree.getSelectedNode();
+            var oldname=node.text;
+            var n = Charmosaic(tree.getAncestors(node));
             tree.beginEdit(node);
-            tree.on("endedit", function (e) {
-                var dname = node.text;
-                var rname = node.pid;
-                mini.ajax({
+            tree.on("endedit", function () {
+                $.ajax({
                     url: "/renamed",
                     type: "post",
                     data: {
-                        Dname: dname,
-                        Rname: rname,
+                        path: n,
+                        Rename: node.text,
+                        oldname:oldname,
                     },
                     datatype: "json",
                     success: function (data) {
                         if (data == 1) {
                             alert("修改成功");
                         } else {
+                            tree.setNodeText(node,oldname);
                             alert("修改失败");
                         }
 
                     }
 
                 })
+
             });
         }
 
@@ -267,13 +269,34 @@
             tabs.activeTab(tabs.addTab(tab));
         }
 
+        //新建文件夹
+        function onAddFolder() {
+            var tree=mini.get("leftTree");
+            var node=tree.getSelectedNode();
+            var n=Charmosaic(tree.getAncestors(node));
+            var newNode=[];
+            newNode.isLeaf=false;
+            newNode.expanded=false;
+            newNode.value="Newfile";
+            $.ajax({
+                url:"/newfile",
+                type:"post",
+                data:{
+                    path:n,
+                    filename:newNode.value,
+                },
+                datatype:"json",
+                success: function (data) {
+                    tree.addNode(newNode, "add", node);
+                    tree.setNodeText(newNode,data);
+                }
+
+            })
+        }
+
         //编辑保存
         function savetext() {
-            var editor = editormd("test-editor", {
-                // placeholder:data,
-                // markdown : data,
-                path: "../editormd/lib/",
-            });
+            var editor = editormd("test-editor");
             var editaddress = mini.get("editaddress");
             var editaddress1 = mini.get("editaddress1");
             mini.ajax({
@@ -322,22 +345,52 @@
 
         }
 
-        //删除文件
+        //删除文件文件到删除树里
         function onRemoveNode(e) {
             var tree = mini.get("leftTree");
             var node = tree.getSelectedNode();
             if (node) {
                 if (confirm("确定删除选中节点?")) {
-                    tree.removeNode(node);
                     mini.ajax({
                         url: "/delfile",
                         type: "post",
                         data: {
                             delname: node.pid,
+                            i:0,
                         },
                         datatype: "json",
                         success: function (data) {
                             if (data > 0) {
+                                tree.removeNode(node);
+                                alert("删除成功");
+                                Deltreefile();
+                            }
+
+                        }
+
+
+                    })
+                }
+            }
+        }
+
+        //从删除树里删除
+        function delfile() {
+            var tree=mini.get("delTree");
+            var node=tree.getSelectedNode();
+            if (node) {
+                if (confirm("确定删除选中节点?")) {
+                    mini.ajax({
+                        url: "/delfile",
+                        type: "post",
+                        data: {
+                            delname: node.pid,
+                            i:1,
+                        },
+                        datatype: "json",
+                        success: function (data) {
+                            if (data > 0) {
+                                tree.removeNode(node);
                                 alert("删除成功");
                             }
 
@@ -352,12 +405,13 @@
         //地址字符串拼接
         function Charmosaic(e) {
             var temp = "";
-            for (var i = 0; i < e.length; i++) {
-                temp = temp + e[i].id + "/";
+            for (var i = 1; i < e.length; i++) {
+                temp = temp + e[i].id + "\\";
             }
             return temp;
         }
 
+        //下载单个文件
         function download() {
             var deltree=mini.get("leftTree");
             var node=deltree.getSelectedNode();
@@ -367,31 +421,21 @@
             download.submit();
 
         }
-        function download1() {
-            var deltree=mini.get("leftTree");
+        function deldownload() {
+            var deltree=mini.get("delTree");
             var node=deltree.getSelectedNode();
             var n=node.pid;
-            mini.ajax({
-                url: "/download",
-                type: "post",
-                data: {
-                    path: n,
-                },
-                responseType: 'blob',
-                datatype: "json",
-                success: function (data) {
-
-                }
-
-            })
-
+            $("#filename").val(n);
+            var download = document.getElementById('download');
+            download.submit();
         }
     </script>
 
 </head>
-<body>
+<body onload="onlow()">
 
 <!--Layout-->
+<div class="mini-fit" >
 <div id="layout1" class="mini-layout" style="width:100%;height:100%;">
     <!--    编辑目录 -->
     <div class="app-header" region="north" height="70" showSplit="false" showHeader="false">
@@ -412,10 +456,11 @@
                 <div id="mainTabs1" class="mini-tabs" activeIndex="0" style="width:100%;height:100%;"
                      plain="false"
                 >
-                    <div title="正在使用">
+
+                    <div title="正在使用" class="mini-fit">
                         <!--Tree-->  <!-- 左边导航栏  ，显示文件夹 -->
                         <!--                过滤框-->
-                        <div id="combobox" class="mini-combobox" style="width:250px;" popupWidth="400" textField="text"
+                        <div id="combobox" class="mini-combobox" style="width:200px;" popupWidth="200" textField="text"
                              valueField="id"
                              data="dataList" multiSelect="true" value=".md" showClose="true"
                              oncloseclick="Fileselection">
@@ -424,12 +469,14 @@
 
                             </div>
                         </div>
-                        <ul id="leftTree" class="mini-tree" data="filedata" style="width:100%;height:100%;"
+                       <div class="mini-fit">
+                        <ul id="leftTree" class="mini-tree " data="filedata" style="width:100%;height:100%;"
                             showTreeIcon="true" textField="text" idField="id" resultAsTree="true"
                             contextMenu="#treeMenu"
                         >
                         </ul>
                     </div>
+                </div>
                     <div title="已删除">
                         <ul id="delTree" class="mini-tree" url="" style="width:100%;height:100%;"
                             showTreeIcon="true" textField="text" idField="id" resultAsTree="true"
@@ -446,8 +493,12 @@
                 <!--Tabs--><!--新建，编辑界面-->
                 <div id="mainTabs" class="mini-tabs" activeIndex="0" style="width:100%;height:100%;"
                      plain="false" buttons="#tabsButtons" buttonsAlign="right">
-                    <div name="edit" title="编辑" url="">
-                        <div id="panel2" class="mini-panel" title="设置信息" iconCls="icon-add"
+
+                    <div title="说明" url=""></div>
+                    <div name="edit" title="编辑" url="" class="mini-fit">
+
+                        <div class="mini-fit">
+                        <div id="panel2" class="mini-panel " title="设置信息" iconCls="icon-add"
                              style="width:100%;height:50px;" showHeader="false">
                             文件路径： <input id="editaddress" name="addressname" class="mini-textbox" readOnly="true"
                                          style="width: 200px"/>
@@ -455,13 +506,13 @@
                             <a id="save" class="mini-button mini-button-info" style="margin-left: 50px"
                                onclick="savetext">保存</a>
                         </div>
-                        <div id="test-editor">
-                            <textarea id="di" style="display:none;"></textarea>
+                        <div id="test-editor" class="mini-fit" >
+                          <textarea id="di" class="mini-fit" style="display:none; height: 100%"></textarea>
                         </div>
                     </div>
-                    <div title="弹出面板" url="">
 
                     </div>
+
                 </div>
                 <div id="tabsButtons">
                     <a id="Catalog" class="mini-button" iconCls="" onclick="Catalog">编辑目录</a>
@@ -470,6 +521,8 @@
         </div>
     </div>
 </div>
+</div>
+
 <div style="display: none">
     <!--                右键菜单栏     -->
     <ul id="treeMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
@@ -477,7 +530,7 @@
         <li>
             <span name="add" iconCls="icon-add">新建</span>
             <ul>
-                <li onclick="onAddBefore">新建文件夹</li>
+                <li onclick="onAddFolder">新建文件夹</li>
                 <li onclick="onAddNode">新建文件</li>
                 <a class="mini-button" onclick="openW">上传</a>
                 <!--                <li class="mini-button" onclick="openW">上传</li>-->
@@ -489,8 +542,8 @@
     </ul>
 
     <ul id="deltreeMenu" class="mini-contextmenu" onbeforeopen="ondelOpen">
-        <li name="edit" iconCls="icon-edit" onclick="download">下载</li>
-        <li name="add" iconCls="icon-remove" onclick="onRemoveNode">删除</li>
+        <li name="edit" iconCls="icon-edit" onclick="deldownload">下载</li>
+        <li name="add" iconCls="icon-remove" onclick="delfile">删除</li>
     </ul>
 
 
@@ -510,61 +563,33 @@
         {"id": ".md", "text": ".md"},
         {"id": ".txt", "text": ".txt"},
         {"id": ".js", "text": ".js"},]
-
+    mini.parse();
     function ondelOpen(e) {
         var tree = mini.get("delTree");
         var node = tree.getSelectedNode();
         if (!node) {
             e.cancel = true;
         }
-        if (node && node.text == "test") {
+        if (node && node.text == "test"){
             e.cancel = true;
             //阻止浏览器默认右键菜单
             e.htmlEvent.preventDefault();
             return;
         }
     }
-
-    mini.parse();
-
     function openW() {
+        top["win"] = window;
         mini.open({
             title: "上传面板",
             //url: "src/uploadwindow.html",
-            url: "sl.html",
+            url: "upload.html",
             width: 600,
             height: 350,
             allowResize: false,
-            onload: function () {
-                var iframe = this.getIFrameEl();
-                var data = {a: "msg1", b: "msg2"};  //模拟传递上传参数
-                iframe.contentWindow.SetData(data);
-            },
-            ondestroy: function (action) {
-                if (action == "ok") {
-                    var iframe = this.getIFrameEl();
 
-                    var data = iframe.contentWindow.GetData();
-                    data = mini.clone(data);
-
-                    var json = mini.encode(data);
-                    alert("已完成上传数据：\n" + json);
-                }
-            }
         })
     }
 
 
 
-    // tab.ondestroy = function (e) {
-    //     var tabs = e.sender;
-    //     var iframe = tabs.getTabIFrameEl(e.tab);
-    //
-    //     //获取子页面返回数据
-    //     var pageReturnData = iframe.contentWindow.getData ? iframe.contentWindow.getData() : "";
-    //
-    //     alert(e.tab.removeAction + " : " + pageReturnData);
-    //
-    //     //如果禁止销毁的时候，自动active一个新tab：e.autoActive = false;
-    // }
 </script>

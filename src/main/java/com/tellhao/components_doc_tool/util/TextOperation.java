@@ -45,6 +45,10 @@ public class TextOperation {
         }else {
             filePath = addressname;
         }
+        File file=new File(filePath);
+
+
+        if(!file.exists()){
         FileWriter fwriter = null;
         try {
             // 覆盖原来的内容，直接省略这个参数就好
@@ -62,6 +66,10 @@ public class TextOperation {
             }
         }
         return 1;
+    }else {
+            return 0;
+        }
+
     }
 
     //    文本转字符串
