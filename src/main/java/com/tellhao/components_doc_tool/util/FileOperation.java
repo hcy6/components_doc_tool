@@ -2,11 +2,11 @@ package com.tellhao.components_doc_tool.util;
 
 import com.tellhao.components_doc_tool.entity.Treevo;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -18,7 +18,8 @@ import java.util.regex.Pattern;
 
 @Service
 public class FileOperation {
-
+    @Value("${fileaddress}")
+    private String fileaddress;
 
     //    实验代码
     public List getTrailFileTs(String dir) {
@@ -40,10 +41,17 @@ public class FileOperation {
     }
 
     //取出目录下的所有文件-------------------------------------------------------------
-//    public List getfiletree(String dir) throws IOException {
-//
-//     return getfiletree(dir,".md");
-//    }
+   public List getfiletree(String dir,List list) throws IOException {
+
+        List<Treevo> tree=new ArrayList<Treevo>();
+        File file=new File(dir.trim());
+       Treevo treevo = new Treevo();
+       treevo.setId(file.getName());
+       treevo.setText(file.getName());
+       treevo.setChildren(list);
+       tree.add(treevo);
+       return tree;
+    }
     public List getfiletree(String dir,String extension) throws IOException {
 
         FileOperation get = new FileOperation();
@@ -79,8 +87,8 @@ public class FileOperation {
         return tree;
 
     }
-    public  Boolean extensionfile(String file,String extension){
 
+    public  Boolean extensionfile(String file,String extension){
         int flag=0;
         String f=file.substring(file.lastIndexOf("."));
         String[] strAry = extension.split(",");
@@ -101,7 +109,6 @@ public class FileOperation {
             File file = new File(delname);
             SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
             String date = dateformat.format(new Date());
-//                DateFormat date = new SimpleDateFormat("yyyyMMdd");
                 if (file.exists()) {
                 File back=new File(delname+"."+date+".back");
                 return  file.renameTo(back)? 1:0;
@@ -115,25 +122,56 @@ public class FileOperation {
 
 
     }
-
-    //文件名的修改-------------------------------------------------------------------------
-    public int renameFile(String file, String toFile) {
-        File Renamed = new File(file);
-        //检查要重命名的文件是否存在，是否是文件
-        if (!Renamed.exists()) {
-            System.out.println("File does not exist: " + file);
-            return 0;
-        } else {
-//            String newFile=new String(toFile);
-            File f = new File(toFile);
-            if (Renamed.renameTo(f)) {
-                System.out.println(f.getName());
-                return 1;
+    //真删除文件--------------------------------------------------------------------------
+    public int truedelFile(String delname) {
+        try {
+            File file = new File(delname);
+            if (file.exists()) {
+                file.delete();
+                return  1;
             } else {
                 return 0;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
         }
 
+
+    }
+
+    //文件名的修改-------------------------------------------------------------------------
+    public int renameFile(String path, String rename,String oldname) {
+        String oldnamed=fileaddress+path+oldname;
+        File oldfile = new File(oldnamed);
+        String  newname=fileaddress+path+rename;
+        File  refile= new File(newname);
+        //检查要重命名的文件是否存在，是否是文件
+        if (!oldfile.exists() && refile.exists()){
+            return 0;
+        } else {
+            return oldfile.renameTo(refile)?  1:0;
+        }
+
+    }
+
+     // 新创文件夹
+    public String newfile(String path,String filename){
+
+        String address=fileaddress+path;
+        int j=1;
+           File file=new File(address);
+        String[] fileList = file.list();
+        for (int i = 0; i < fileList.length; i++) {
+            if(fileList[i].equals(filename)){
+                filename="Newfile"+j;
+                j++;
+                i=0;
+            }
+        }
+  File newfile=new File(address+filename);
+        newfile.mkdirs();
+return filename;
     }
 
 

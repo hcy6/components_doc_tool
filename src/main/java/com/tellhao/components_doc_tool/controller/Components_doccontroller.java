@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,9 +47,9 @@ public class Components_doccontroller {
 
     @RequestMapping("/delfile")
     @ResponseBody
-    public int del(String delname) {
-        int i = fileOperation.delFile(delname);
-        return i;
+    public int del(String delname,int i) {
+
+        return i==0? fileOperation.delFile(delname):fileOperation.truedelFile(delname);
     }
 
 
@@ -57,25 +57,25 @@ public class Components_doccontroller {
     @ResponseBody
     public List<Treevo> getfiletree(@Value("${fileaddress}") String dir,int id,String fileaddress) throws IOException {
 
-        return id==0? fileOperation.getfiletree(dir,fileaddress):fileOperation.getfiletree(dir,".back");
+        return id==0? fileOperation.getfiletree(dir,fileOperation.getfiletree(dir,fileaddress)):fileOperation.getfiletree(dir,".back");
     }
 
 
 
-//    @RequestMapping("/getdelfiletree")
-//    @ResponseBody
-//    public List<Treevo> getdelfiletree(@Value("${fileaddress}") String dir) throws IOException {
-//        List<Treevo> list = fileOperation.getfiletree(dir,".back");
-//        return list;
-//    }
+    @RequestMapping("/newfile")
+    @ResponseBody
+    public String getdelfiletree(String path,String filename) throws IOException {
+
+        return fileOperation.newfile(path,filename);
+    }
 
 
     @RequestMapping("/renamed")
     @ResponseBody
-    public int Renamed(String Dname, String Rname) {
-        String a = Rname.substring(0, Rname.lastIndexOf("\\")) + "\\" + Dname;
-        int i = fileOperation.renameFile(Rname, a);
-        return i;
+    public int Renamed(String path, String Rename,String oldname) {
+//        String a = Rname.substring(0, Rname.lastIndexOf("\\")) + "\\" + Dname;
+//        int i = );
+        return fileOperation.renameFile(path,Rename,oldname);
     }
 
     @RequestMapping("/download")
@@ -87,9 +87,9 @@ public class Components_doccontroller {
 
     @RequestMapping("/upload")
     @ResponseBody
-    public String upload(@RequestParam("file") CommonsMultipartFile file) throws IOException {
+    public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        return  upload.fileUpload2(file);
+        return  upload.fileUpload2(file,request);
     }
 
 
