@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>文档编译器</title>
+    <script src="js/jquery-3.4.1.min1.js"></script>
+    <script src="js/vue.min2.js"></script>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script src="scripts/boot.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="editormd/css/editormd.css"/>
+    <!--markdown -->
+    <script src="scripts/jquery.min.js"></script>
+    <script src="editormd/editormd.min.js"></script>
+
+
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+    <script>
+        // var vm = new Vue({
+        //     el: "#test-editor",
+        //     data: {
+        //         Wen: [],
+        //         content: "",
+        //         cont: "",
+        //         WJ: [],
+        //
+        //     }, methods: {
+        //         gettext: function (n, node) {
+        //             $.ajax({
+        //                 url: "/gettext",
+        //                 type: "post",
+        //                 data: {
+        //                     addressname: n,
+        //                     filename: node.text,
+        //                 },
+        //                 datatype: "json",
+        //                 success: function (data) {
+        //
+        //                     var  editor = editormd("test-editor", {
+        //                         // placeholder:data,
+        //                         markdown : data,
+        //                         path: "../editormd/lib/",
+        //
+        //                     });
+        //                     editor.setData(data);
+        //                     vm.content=data;
+        //                     vm.cont=vm.content;
+        //                     // $("#test-editor").setText(data);
+        //                     // var gitr1 = mini.get("edittextbox");
+        //                     // gitr1.setValue(data);
+        //                 }
+        //             })
+        //
+        //         },
+        //     }
+        // })
+    </script>
+    <!--前端js代码控制-->
+
+    <script>
+
+        var filedat = "";
+
+        function onlow(data) {
+            var editor = editormd("test-editor", {
+                // placeholder:data,
+                width: "100%",
+                height: 545,
+                markdown: data,
+                path: "../editormd/lib/",
+            });
+        }
+
+        $(function () {
+            mini.parse();
+            var gitr = mini.get("leftTree");
+            var deltree = mini.get("delTree");
+            var catalog = mini.get("combobox");
+            //修改名
+            gitr.on("endedit", function () {
+                var node = gitr.getSelectedNode();
+                var oldname = node.pid;
+                var rename = node.text;
+                var n = Charmosaic(gitr.getAncestors(node));
+                $.ajax({
+                    url: "/renamed",
+                    type: "post",
+                    data: {
+                        path: n,
+                        Rename: rename,
+                        oldname: oldname,
+                    },
+                    datatype: "json",
+                    success: function (data) {
+                        if (data == 1) {
+                            gitr.updateNode(node, {pid: rename, id: rename})
+                            alert("修改成功");
+                        } else {
+                            gitr.setNodeText(node, oldname);
+                            alert("修改失败");
+                        }
+
+                    }
+
+                })
+
+            });
+            //    单击节点
+            gitr.on("nodeclick", function () {
+                var tabs = mini.get(mainTabs);
+                var node = gitr.getSelectedNode();
+                var c = gitr.isLeaf(node);
+                if (c) {
+                    tabs.activeTab("edit");
+                    var n = Charmosaic(gitr.getAncestors(node));
+                    var text = mini.get("editaddress");
+                    var text1 = mini.get("editaddress1");
+                    text.setValue(n);
+                    text1.setValue(node.text);
+                    gettext(n, node);
+                }
+            });
+            //    双击节点
+            gitr.on("nodedblclick", function () {
+                var tabs = mini.get(mainTabs);
+                var tree = mini.get("leftTree");
+                var node = tree.getSelectedNode();
+                var c = tree.isLeaf(node);
+                if (c) {
+                    var list = new Array();
+                    var flag = 0;
+                    list = tabs.getTabs();
+                    for (var i = 0; i < list.length; i++) {
+                        if (("编辑" + node.text) == list[i].title) {
+                            flag = 1;
+                            break;
+                        }
+                    }
+                    top["win"] = window;
+                    if (flag == 0) {
+                        var tab = {
+                            title: "编辑" + node.text,
+                            url: 'editfile.html',
+                            name: node.text,
+                            showCloseButton: true
+                        };
+                        tabs.activeTab(tabs.addTab(tab));
+                    } else {
+                        tabs.activeTab(node.text);
+                    }
+                }
+            })
+            //过滤框
+            catalog.on("valuechanged", function () {
+                Fileselection();
+            })
+            // 文件树加载绘制
+            gitr.on("drawnode", function (e) {
+                var n = e.node.uid;
+                if (n == 1) {
+                    e.node.asyncLoad = false;
+                    e.node.isLeaf = false;
+                }
+
+            })
+            // 删除树加载绘制
+            deltree.on("drawnode", function (e) {
+                var n = e.node.uid;
+                if (n == 1) {
+                    e.node.asyncLoad = false;
+                    e.node.isLeaf = false;
+                }
+
+
+            })
+
+            Fileselection();
+            Deltreefile();
+            Explain();
+
+
+        });
+
+        //读取内容
+        function gettext(n, node) {
+            $.ajax({
+                url: "/gettext",
+                type: "post",
+                data: {
+                    addressname: n,
+                    filename: node.text,
+                },
+                datatype: "json",
+                success: function (data) {
+                    onlow(data);
+
+
+                }
+            })
+
+        }
+
+        function Deltreefile() {
+            var tree = mini.get("delTree");
+            $.ajax({
+                url: "/getfiletree",
+                type: "post",
+                data: {
+                    id: 1,
+                },
+                datatype: "json",
+                success: function (data) {
+                    tree.loadData(data);
+                    tree.expandLevel(0);
+                    tree.expandLevel(1);
+                    filedat = data;
+
+                }
+            })
+        }
+
+        //文件筛选
+        function Fileselection() {
+            var combobox = mini.get("combobox");
+            var tree = mini.get("leftTree");
+            $.ajax({
+                url: "/getfiletree",
+                type: "post",
+                data: {
+                    fileaddress: combobox.value,
+                    id: 0,
+                },
+                datatype: "json",
+                success: function (data) {
+                    tree.loadData(data);
+                    tree.expandLevel(0);
+                    filedat = data;
+
+                }
+            })
+
+        }
+
+        //目录
+        function Catalog() {
+            var tabs = mini.get(mainTabs);
+            top["win"] = window;
+            var list = new Array();
+            var flag = 0;
+            list = tabs.getTabs();
+            for (var i = 0; i < list.length; i++) {
+                if (("编辑目录") == list[i].title) {
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag == 0) {
+                var tab = {title: "编辑目录", url: 'catalog.html', name: "编辑目录", showCloseButton: true};
+                tabs.activeTab(tabs.addTab(tab));
+            } else {
+                tabs.activeTab("编辑目录");
+            }
+
+        }
+
+
+        // <!--    设置右键菜单栏的事件-->
+        function onBeforeOpen(e) {
+            var menu = e.sender;
+            var tree = mini.get("leftTree");
+            var node = tree.getSelectedNode();
+            var c = tree.isLeaf(node);
+            if (!node) {
+                e.cancel = true;
+            }
+            if (node && node.text == "tetestsxzxsdst") {
+                e.cancel = true;
+                //阻止浏览器默认右键菜单
+                e.htmlEvent.preventDefault();
+                return;
+            }
+            var editItem = mini.getbyName("add", menu);
+            var edit = mini.getbyName("edit", menu);
+            edit.show();
+            editItem.show();
+            // removeItem.enable();
+            if (c) {
+                editItem.hide();
+            } else {
+                edit.hide()
+            }
+        }
+
+        //设置右键菜单具体选项的事件
+
+        //修改文件名
+        function onEditNode(e) {
+            var tree = mini.get("leftTree");
+            var node = tree.getSelectedNode();
+            tree.beginEdit(node);
+            // tree.on("endedit", function () {
+            //     $.ajax({
+            //         url: "/renamed",
+            //         type: "post",
+            //         data: {
+            //             path: n,
+            //             Rename: node.text,
+            //             oldname:oldname,
+            //         },
+            //         datatype: "json",
+            //         success: function (data) {
+            //             if (data == 1) {
+            //                 alert("修改成功");
+            //             } else {
+            //                 tree.setNodeText(node,oldname);
+            //                 alert("修改失败");
+            //             }
+            //
+            //         }
+            //
+            //     })
+            //
+            // });
+        }
+
+        //说明
+        function Explain() {
+            var tabs = mini.get("mainTabs");
+            var explain = mini.get("Explain");
+            $.ajax({
+                url: "/gettext",
+                type: "post",
+                data: {
+                    addressname: "",
+                    filename: "Explain.txt",
+                },
+                datatype: "json",
+                success: function (data) {
+                    var editor = editormd("Explain", {
+                        // placeholder:data,
+                        height: 595,
+                        markdown: data,
+                        readOnly: true,
+                        path: "../editormd/lib/",
+                    });
+                }
+
+            })
+
+        }
+
+        //新建文件
+        function onAddNode(e) {
+            var tabs = mini.get(mainTabs);
+            var tree = mini.get("leftTree");
+            var node = tree.getSelectedNode();
+            top["win"] = window;
+            var tab = {title: node.text, url: 'newfile.html', showCloseButton: true};
+            tabs.activeTab(tabs.addTab(tab));
+        }
+
+        //新建文件夹
+        function onAddFolder() {
+            var tree = mini.get("leftTree");
+            var node = tree.getSelectedNode();
+            var n = Charmosaic(tree.getAncestors(node)) + node.text;
+            var newNode = [];
+            newNode.isLeaf = false;
+            newNode.expanded = false;
+            newNode.asyncLoad = false;
+            newNode.value = "Newfile";
+            $.ajax({
+                url: "/newfile",
+                type: "post",
+                data: {
+                    path: n,
+                    filename: newNode.value,
+                },
+                datatype: "json",
+                success: function (data) {
+                    tree.addNode(newNode, "add", node);
+                    tree.updateNode(newNode, {pid: data})
+                    tree.setNodeText(newNode, data);
+                }
+
+            })
+        }
+
+        //编辑保存
+        function savetext() {
+            var editor = editormd("test-editor");
+            var editaddress = mini.get("editaddress");
+            var editaddress1 = mini.get("editaddress1");
+            mini.ajax({
+                url: "/uploadtext",
+                type: "post",
+                data: {
+                    addressname: editaddress.value,
+                    filename: editaddress1.value,
+                    text: editor.markdownTextarea[0].defaultValue,
+                    id: 0,
+                },
+                datatype: "json",
+                success: function (data) {
+
+
+                }
+            })
+        }
+
+        //删除文件文件到删除树里
+        function onRemoveNode(e) {
+            var tree = mini.get("leftTree");
+            var combobox = mini.get("combobox");
+            var node = tree.getSelectedNode();
+            var n = Charmosaic(tree.getAncestors(node));
+            if (node) {
+                if (confirm("确定删除选中节点?")) {
+                    mini.ajax({
+                        url: "/delfile",
+                        type: "post",
+                        data: {
+                            address: n,
+                            delname: node.text,
+                            i: 0,
+                            id: 0,
+                        },
+                        datatype: "json",
+                        success: function (data) {
+                            if (data > 0) {
+                                tree.removeNode(node);
+                                alert("删除成功");
+                                Deltreefile();
+                            }
+
+                        }
+
+
+                    })
+                }
+            }
+        }
+
+        //从删除树里删除
+        function delfile(id) {
+            var tree = mini.get("delTree");
+            var node = tree.getSelectedNode();
+            var n = Charmosaic(tree.getAncestors(node));
+            if (node) {
+                if (confirm("确定删除选中节点?")) {
+                    mini.ajax({
+                        url: "/delfile",
+                        type: "post",
+                        data: {
+                            address: n,
+                            delname: node.text,
+                            id: id,
+                            i: 1,
+                        },
+                        datatype: "json",
+                        success: function (data) {
+                            if (data == 1 && id == 1) {
+                                tree.removeNode(node);
+                                alert("删除成功");
+                            } else if (data == 2) {
+                                var r = tree.getAllChildNodes(node);
+                                for (var t = 0; t < r.length; t++) {
+                                    if (r[t].id.substring(r[t].id.lastIndexOf(".")) == ".back") {
+                                        tree.removeNode(r[t]);
+                                    }
+                                }
+                            }
+
+                        }
+
+                    })
+                }
+            }
+        }
+
+        //删除文件夹
+
+
+        //地址字符串拼接
+        function Charmosaic(e) {
+            var temp = "";
+            for (var i = 1; i < e.length; i++) {
+                temp = temp + e[i].id + "/";
+            }
+            return temp;
+        }
+
+        //下载文件
+        function download() {
+            var deltree = mini.get("leftTree");
+            var node = deltree.getSelectedNode();
+            var n = Charmosaic(deltree.getAncestors(node));
+            $("#address").val(n);
+            $("#filename").val(node.id);
+            $("#i").val(1);
+            var download = document.getElementById('download');
+            download.submit();
+
+        }
+
+        function deldownload() {
+            var deltree = mini.get("delTree");
+            var node = deltree.getSelectedNode();
+            var n = Charmosaic(deltree.getAncestors(node));
+            $("#address").val(n);
+            $("#filename").val(node.id);
+            $("#i").val(1);
+            var download = document.getElementById('download');
+            download.submit();
+        }
+
+        function downloadfile() {
+            if (confirm("确定下载本文件吗？")) {
+
+                $("#i").val(0);
+                var download = document.getElementById('download');
+                download.submit();
+            }
+
+        }
+    </script>
+
+</head>
+<body onload="onlow()">
+
+<!--Layout-->
+<div class="mini-fit">
+    <div id="layout1" class="mini-layout" style="width:100%;height:100%;">
+        <!--    编辑目录 -->
+        <div class="app-header" region="north" height="70" showSplit="false" showHeader="false">
+            <h1 style="margin:0;padding:15px;cursor:default;font-family:'Trebuchet MS',Arial,sans-serif;">文档编辑器</h1>
+            <div style="position:absolute;top:12px;right:10px;">
+                <a class="mini-button mini-button-iconTop" iconCls="icon-download" onclick="downloadfile" plain="true">下载</a>
+            </div>
+        </div>
+        <div title="south" region="south" showSplit="false" showHeader="false" height="30">
+            <div style="line-height:28px;text-align:center;cursor:default"></div>
+        </div>
+        <div title="center" region="center" bodyStyle="overflow:hidden;" style="border:0;">
+            <!--Splitter-->
+            <div class="mini-splitter" onbeforeopen="onBeforeOpen" style="width:100%;height:100%;"
+                 borderStyle="border:0;">
+                <div size="210" maxSize="250" minSize="100" showCollapseButton="true" style="border-width:1px;">
+
+
+                    <div id="mainTabs1" class="mini-tabs" activeIndex="0" style="width:100%;height:100%;"
+                         plain="false"
+                    >
+                        <div title="正在使用" class="mini-fit">
+                            <!--Tree-->  <!-- 左边导航栏  ，显示文件夹 -->
+                            <!--                过滤框-->
+                            <div id="combobox" class="mini-combobox" style="width:200px;" popupWidth="200"
+                                 textField="text"
+                                 valueField="id"
+                                 data="dataList" multiSelect="true" showClose="true"
+                                 oncloseclick="Fileselection">
+                                <div property="columns">
+                                    <div header="后缀名" field="id"></div>
+
+                                </div>
+                            </div>
+                            <div class="mini-fit">
+                                <ul id="leftTree" class="mini-tree " data="filedata" style="width:100%;height:100%;"
+                                    showTreeIcon="true" textField="text" idField="id" resultAsTree="true"
+                                    contextMenu="#treeMenu"
+                                >
+                                </ul>
+                            </div>
+                        </div>
+                        <div title="已删除">
+                            <ul id="delTree" class="mini-tree" url="" style="width:100%;height:100%;"
+                                showTreeIcon="true" textField="text" idField="id" resultAsTree="true"
+                                contextMenu="#deltreeMenu" showCloseButton="true" onclick="Deltreefile"
+                            >
+                            </ul>
+
+                        </div>
+                    </div>
+
+
+                </div>
+                <div showCollapseButton="false" style="border:0px;">
+                    <!--Tabs--><!--新建，编辑界面-->
+                    <div id="Buttons">
+                        <a id="Catalog" class="mini-button" iconCls="" onclick="Catalog">编辑目录</a>
+                    </div>
+                    <div id="mainTabs" class="mini-tabs" activeIndex="0" style="width:100%;height:100%;"
+                         plain="false" buttons="#Buttons" buttonsAlign="right">
+                        <!--               buttons="#Buttons"         buttonsAlign="right"-->
+                        <div title="说明" url="">
+                            <div class="mini-fit">
+                                <div id="Explain" class="mini-fit">
+                                    <textarea class="mini-fit" style="display:none; height: 100%"></textarea>
+                                </div>
+                                <!--                        <textarea  id="Explain" class="mini-textarea" style="width: 100%; height: 100%" readonly></textarea>-->
+                            </div>
+                        </div>
+                        <div name="edit" title="查看" url="" class="mini-fit">
+
+                            <div id="panel2" class="mini-panel " title="设置信息" iconCls="icon-add"
+                                 style="width:100%;height:50px;" showHeader="false">
+                                文件路径： <input id="editaddress" name="addressname" class="mini-textbox"
+                                             readOnly="true"
+                                             style="width: 200px"/>
+                                文件名称： <input id="editaddress1" name="filename" class="mini-textbox"
+                                             readOnly="true"/>
+                                <a id="save" class="mini-button mini-button-info" style="margin-left: 50px"
+                                   onclick="savetext">保存</a>
+                            </div>
+                            <div id="test-editor" class="mini-fit">
+                                <textarea id="di" class="mini-fit" style="display:none; height: 100%"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div style="display: none">
+    <!--                右键菜单栏     -->
+    <ul id="treeMenu" class="mini-contextmenu" onbeforeopen="onBeforeOpen">
+        <li class="separator"></li>
+        <li>
+            <span name="add" iconCls="icon-add">新建</span>
+            <ul>
+                <li onclick="onAddFolder">新建文件夹</li>
+                <li onclick="onAddNode">新建文件</li>
+                <a class="mini-button" onclick="openW">上传</a>
+                <!--                <li class="mini-button" onclick="openW">上传</li>-->
+            </ul>
+        </li>
+        <li name="edit1" iconCls="icon-edit" onclick="onEditNode">重命名</li>
+        <li name="remove" iconCls="icon-remove" onclick="onRemoveNode">删除</li>
+        <li name="edit" iconCls="icon-edit" onclick="download">下载</li>
+    </ul>
+
+    <ul id="deltreeMenu" class="mini-contextmenu" onbeforeopen="ondelOpen">
+        <li name="edit" iconCls="icon-edit" onclick="deldownload">下载</li>
+        <li name="add" iconCls="icon-remove" onclick="delfile(0)">删除back</li>
+        <li name="del" iconCls="icon-remove" onclick="delfile(1)">删除文件夹</li>
+    </ul>
+
+
+</div>
+<form action="/download" id="download" method="post" enctype="multipart/form-data" style="display:none;">
+    <input id="address" type="text" name="address" style="display: none">
+    <input id="filename" type="text" name="filename" style="display: none">
+    <input id="i" type="text" name="i" style="display: none">
+
+</form>
+</body>
+</html>
+
+<script>
+
+
+    // <!--    过滤框值-->
+    var dataList = [
+        {"id": ".md", "text": ".md"},
+        {"id": ".txt", "text": ".txt"},
+        {"id": ".js", "text": ".js"},
+    ]
+    mini.parse();
+
+    function ondelOpen(e) {
+        var menu = e.sender;
+        var tree = mini.get("delTree");
+        var node = tree.getSelectedNode();
+        var c = tree.isLeaf(node);
+        if (!node) {
+            e.cancel = true;
+        }
+        if (node && node.text == "testsxzxsd") {
+            e.cancel = true;
+            //阻止浏览器默认右键菜单
+            e.htmlEvent.preventDefault();
+            return;
+        }
+        var editItem = mini.getbyName("add", menu);
+        var edit = mini.getbyName("edit", menu);
+        var del = mini.getbyName("del", menu);
+        edit.show();
+        editItem.show();
+        del.hide();
+        // removeItem.enable();
+        if (!c && node.text.lastIndexOf(".") > 0) {
+            del.show();
+            edit.hide();
+        } else if (!c) {
+            edit.hide();
+            del.hide();
+        }
+    }
+
+    function openW() {
+        top["win"] = window;
+        mini.open({
+            title: "上传面板",
+            //url: "src/uploadwindow.html",
+            url: "upload.html",
+            width: 600,
+            height: 350,
+            allowResize: false,
+
+        })
+    }
+
+
+</script>

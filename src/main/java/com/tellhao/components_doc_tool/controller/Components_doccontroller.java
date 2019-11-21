@@ -19,80 +19,83 @@ import java.util.*;
 
 @Controller
 public class Components_doccontroller {
+    @Value("${fileaddress}")
+    private String fileaddress;
 
     @Autowired
     FileOperation fileOperation;
     @Autowired
     TextOperation textOperation;
     @Autowired
-    GetAll getAll;
-    @Autowired
     filedownload filedownload;
     @Autowired
     upload upload;
+    @Autowired
+    compress compress;
 
 
     @RequestMapping("/uploadtext")
     @ResponseBody
-    public int uploadtext(String text, String filename, String addressname) {
+    public int uploadtext(String text, String filename, String addressname, int id) {
 
-        return textOperation.saveAsFileWriter(text, filename,addressname);
+        return id == 0 ? textOperation.saveAsFileWriter(text, filename, addressname) : textOperation.newFileWriter(text, filename, addressname);
     }
 
     @RequestMapping("/gettext")
     @ResponseBody
-    public String gettext(String addressname,String filename) {
-        return textOperation.turnFileTxt(addressname,filename);
+    public String gettext(String addressname, String filename) {
+        return textOperation.turnFileTxt(addressname, filename);
     }
 
     @RequestMapping("/delfile")
     @ResponseBody
-    public int del(String delname,int i) {
+    public int del(String delname, int i, String address, int id) {
 
-        return i==0? fileOperation.delFile(delname):fileOperation.truedelFile(delname);
+        return i == 0 ? fileOperation.delFile(delname, address) : fileOperation.truedelFile(delname, address, id);
     }
 
 
     @RequestMapping("/getfiletree")
     @ResponseBody
-    public List<Treevo> getfiletree(@Value("${fileaddress}") String dir,int id,String fileaddress) throws IOException {
+    public List<Treevo> getfiletree(@Value("${fileaddress}") String dir, int id, String fileaddress) throws IOException {
 
-        return id==0? fileOperation.getfiletree(dir,fileOperation.getfiletree(dir,fileaddress)):fileOperation.getfiletree(dir,".back");
+        return id == 0 ? fileOperation.getfiletree(dir, fileOperation.getfiletree(dir, fileaddress)) : fileOperation.getfiletree(dir, fileOperation.getdelfiletree(dir, ".back"));
     }
-
 
 
     @RequestMapping("/newfile")
     @ResponseBody
-    public String getdelfiletree(String path,String filename) throws IOException {
+    public String getdelfiletree(String path, String filename) throws IOException {
 
-        return fileOperation.newfile(path,filename);
+        return fileOperation.newfile(path, filename);
     }
 
 
     @RequestMapping("/renamed")
     @ResponseBody
-    public int Renamed(String path, String Rename,String oldname) {
+    public int Renamed(String path, String Rename, String oldname) {
 //        String a = Rname.substring(0, Rname.lastIndexOf("\\")) + "\\" + Dname;
 //        int i = );
-        return fileOperation.renameFile(path,Rename,oldname);
+        return fileOperation.renameFile(path, Rename, oldname);
     }
 
     @RequestMapping("/download")
-    public String download(String path, HttpServletResponse response) throws IOException {
-       filedownload.download1(path,response);
+    @ResponseBody
+    public String download(String address, String filename, HttpServletResponse response, int i) throws Exception {
+        if (i == 1) {
+            filedownload.download(address, filename, response, i);
+        } else {
+            filedownload.download(compress.zip("G:/JAVA/zip/docs.zip", fileaddress), filename, response, i);
+        }
 
-        return "redirect:sl.html";
+        return "redirect:index.html";
     }
 
     @RequestMapping("/upload")
     @ResponseBody
     public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-        return  upload.fileUpload2(file,request);
+        return upload.fileUpload(file, request);
     }
-
-
 
 
 }

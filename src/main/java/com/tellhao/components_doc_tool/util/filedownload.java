@@ -16,16 +16,18 @@ public class filedownload {
     private String fileaddress;
 
 
-
-    public HttpServletResponse download1(String path, HttpServletResponse response) {
+    public void download(String address, String filename, HttpServletResponse response, int i) {
         try {
             // path是指欲下载的文件的路径。
+
+            String path = "";
+            path = i == 1 ? fileaddress + address + filename : address;
+            filename = i == 1 ? filename : "docs.zip";
             File file = new File(path);
             // 取得文件名。
-            String filename = file.getName();
+//            String filename = file.getName();
             // 取得文件的后缀名。
 //            String ext = filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
-
             // 以流的形式下载文件。
             InputStream fis = new FileInputStream(path);
             int count = 0;
@@ -40,17 +42,21 @@ public class filedownload {
             // 清空response
             response.reset();
             // 设置response的Header
-            response.addHeader("Content-Disposition", "attachment;filename=" +URLEncoder.encode(filename, "UTF-8"));
+            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(filename, "UTF-8"));
 //            response.addHeader("Content-Length", "" + file.length());
-            OutputStream toClient =response.getOutputStream();
+            OutputStream toClient = response.getOutputStream();
             response.setContentType("application/octet-stream");
             toClient.write(buffer);
 //            toClient.flush();
             toClient.close();
+            if (i == 0) {
+                file.delete();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return response;
+
+//        return response;
     }
 
 

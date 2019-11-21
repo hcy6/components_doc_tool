@@ -9,11 +9,15 @@
 #  mapper-locations: classpath:org/lanqiao/mapper/*.xml
 #  type-aliases-package: org.lanqiao.entity
 
-fileaddress: G:\JAVA\components-doc\docs\
+fileaddress: G:/JAVA/components-doc/docs/
+
 
 #showSql
-logging:
-  level:
-    org:
-      lanqiao:
-        mapper : debug
+#logging:
+#  level:
+#    org:
+#      lanqiao:
+#        mapper : debug
+#logging:
+#  config: classpath:log4j.xml
+

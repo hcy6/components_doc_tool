@@ -6,6 +6,16 @@ public class Treevo {
     private String id;
     private String text;
     private String pid;
+    private int uid;
+
+    public int getUid() {
+        return uid;
+    }
+
+    public void setUid(int uid) {
+        this.uid = uid;
+    }
+
     private List<Treevo> children;
 
     public String getPid() {
