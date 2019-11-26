@@ -1,12 +1,22 @@
-package com.tellhao.components_doc_tool.entity;
+package com.tellhao.doc.entity;
 
 import java.util.List;
 
-public class Treevo {
+public class TreeMember {
     private String id;
     private String text;
     private String pid;
-    private List<Treevo> children;
+    private int uid;
+
+    public int getUid() {
+        return uid;
+    }
+
+    public void setUid(int uid) {
+        this.uid = uid;
+    }
+
+    private List<TreeMember> children;
 
     public String getPid() {
         return pid;
@@ -32,11 +42,11 @@ public class Treevo {
         this.text = text;
     }
 
-    public List<Treevo> getChildren() {
+    public List<TreeMember> getChildren() {
         return children;
     }
 
-    public void setChildren(List<Treevo> children) {
+    public void setChildren(List<TreeMember> children) {
         this.children = children;
     }
 }

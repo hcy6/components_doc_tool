@@ -4881,7 +4881,6 @@
     
                 input.attr( 'type', 'file' );
                 input.attr( 'name', opts.name );
-                // input.attr("webkitdirectory","");
                 input.addClass('webuploader-element-invisible');
     
                 label.on( 'click', function() {
@@ -8103,5 +8102,5 @@
     ], function( preset ) {
         return preset;
     });
-    return require('webuploader');
+    return require('static/js/webuploader');
 });

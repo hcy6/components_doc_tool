@@ -1,13 +1,13 @@
-package com.tellhao.components_doc_tool;
+package com.tellhao.doc;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Components_doctoolApplication {
+public class ComponentsdoctoolApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Components_doctoolApplication.class, args);
+        SpringApplication.run(ComponentsdoctoolApplication.class, args);
     }
 
 }

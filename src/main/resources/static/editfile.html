@@ -12,7 +12,11 @@
     <!--markdown -->
     <script src="scripts/jquery.min.js"></script>
     <script src="editormd/editormd.min.js"></script>
-
+    <style>
+        html, body{
+            margin:0;padding:0;border:0;width:100%;height:100%;overflow:hidden;
+        }
+    </style>
     <script>
         $(function () {
             mini.parse();
@@ -30,18 +34,21 @@
             var  editor = editormd("test-editor");
             var editaddress=mini.get("editaddress");
             var editafile=mini.get("editafile");
-            var n=editor.markdownTextarea[0].defaultValue;
+            var s=editor.markdownTextarea[0].defaultValue;
             $.ajax({
                 url: "/uploadtext",
                 type: "post",
                 data: {
                     addressname: editaddress.value,
                     filename:editafile.value,
-                    text:n,
+                    text:s,
+                    id:0,
                 },
                 datatype: "json",
                 success: function (data) {
-                    editor.replaceSelection(n);
+                    editor.markdown=editor.getMarkdown();
+                    $("#di").value=s;
+                    // editor.save(n);
                 }
             })
 
