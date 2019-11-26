@@ -10,7 +10,11 @@
 #  type-aliases-package: org.lanqiao.entity
 
 fileaddress: G:/JAVA/components-doc/docs/
-
+zipFileName: G:/JAVA/zip/docs.zip
+#  G:/JAVA/components-doc/docs/components/
+#/home/tellhow/middleware/components-doc/docs/
+server:
+  port: 9876
 
 #showSql
 #logging:

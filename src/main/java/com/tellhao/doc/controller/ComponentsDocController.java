@@ -1,7 +1,7 @@
-package com.tellhao.components_doc_tool.controller;
+package com.tellhao.doc.controller;
 
-import com.tellhao.components_doc_tool.entity.Treevo;
-import com.tellhao.components_doc_tool.util.*;
+import com.tellhao.doc.entity.TreeMember;
+import com.tellhao.doc.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,25 +13,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 
 
 @Controller
-public class Components_doccontroller {
+public class ComponentsDocController {
     @Value("${fileaddress}")
     private String fileaddress;
+    @Value("${zipFileName}")
+    private String zipFilenName;
 
     @Autowired
     FileOperation fileOperation;
     @Autowired
     TextOperation textOperation;
     @Autowired
-    filedownload filedownload;
-    @Autowired
-    upload upload;
-    @Autowired
-    compress compress;
+    FileLoad fileload;
 
 
     @RequestMapping("/uploadtext")
@@ -49,24 +46,22 @@ public class Components_doccontroller {
 
     @RequestMapping("/delfile")
     @ResponseBody
-    public int del(String delname, int i, String address, int id) {
-
-        return i == 0 ? fileOperation.delFile(delname, address) : fileOperation.truedelFile(delname, address, id);
+    public int del(String delname, int ctrli, String address, int id) {
+        return ctrli == 0 ? fileOperation.delFile(delname, address) : fileOperation.truedelFile(delname, address, id);
     }
 
 
     @RequestMapping("/getfiletree")
     @ResponseBody
-    public List<Treevo> getfiletree(@Value("${fileaddress}") String dir, int id, String fileaddress) throws IOException {
+    public List<TreeMember> getfiletree(@Value("${fileaddress}") String path, int id, String fileaddress) {
+        return id == 0 ? fileOperation.getfiletree(path, fileOperation.getfiletree(path, fileaddress)) : fileOperation.getfiletree(path, fileOperation.getdelfiletree(path, 1));
 
-        return id == 0 ? fileOperation.getfiletree(dir, fileOperation.getfiletree(dir, fileaddress)) : fileOperation.getfiletree(dir, fileOperation.getdelfiletree(dir, ".back"));
     }
 
 
     @RequestMapping("/newfile")
     @ResponseBody
-    public String getdelfiletree(String path, String filename) throws IOException {
-
+    public String getdelfiletree(String path, String filename) {
         return fileOperation.newfile(path, filename);
     }
 
@@ -74,29 +69,31 @@ public class Components_doccontroller {
     @RequestMapping("/renamed")
     @ResponseBody
     public int Renamed(String path, String Rename, String oldname) {
-//        String a = Rname.substring(0, Rname.lastIndexOf("\\")) + "\\" + Dname;
-//        int i = );
         return fileOperation.renameFile(path, Rename, oldname);
     }
 
     @RequestMapping("/download")
     @ResponseBody
-    public String download(String address, String filename, HttpServletResponse response, int i) throws Exception {
+    public String download(String address, String filename, HttpServletResponse response, int i) {
         if (i == 1) {
-            filedownload.download(address, filename, response, i);
+            fileload.download(address, filename, response, i);
         } else {
-            filedownload.download(compress.zip("G:/JAVA/zip/docs.zip", fileaddress), filename, response, i);
+            fileload.download(fileOperation.zip(zipFilenName, fileaddress), filename, response, i);
         }
-
         return "redirect:index.html";
     }
 
     @RequestMapping("/upload")
     @ResponseBody
-    public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return upload.fileUpload(file, request);
+    public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        return fileload.fileUpload(file, request);
     }
 
 
-}
+//    @RequestMapping("/test")
+//    @ResponseBody
+//    public String test(String addressname, String filename){
+//        return textOperation.readFileByByte(addressname,filename);
+//    }
 
+}
