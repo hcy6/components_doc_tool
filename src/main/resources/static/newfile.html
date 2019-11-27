@@ -41,11 +41,11 @@
          var textbox1=mini.get("textbox1");
          var n=editor.markdownTextarea[0].defaultValue;
          mini.ajax({
-             url: "/uploadtext",
+             url: "/uploadText",
              type: "post",
              data: {
-                 addressname: textbox.value,
-                 filename:textbox1.value,
+                 addressName: textbox.value,
+                 fileName:textbox1.value,
                  text:n,
                  id:1,
              },

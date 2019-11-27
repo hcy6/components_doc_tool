@@ -20,11 +20,11 @@
     <script>
         $(function () {
            $.ajax({
-                url: "/gettext",
+                url: "/getText",
                 type: "post",
                 data: {
-                    addressname: "",
-                    filename:"_sidebar.md",
+                    addressName: "",
+                    fileName:"_sidebar.md",
                 },
                 datatype: "json",
                 success: function (data) {
@@ -41,11 +41,11 @@
             var  editor = editormd("test-editor");
             var s=editor.markdownTextarea[0].defaultValue;
             mini.ajax({
-                url: "/uploadtext",
+                url: "/uploadtText",
                 type: "post",
                 data: {
-                    addressname: "",
-                    filename:"_sidebar.md",
+                    addressName: "",
+                    fileName:"_sidebar.md",
                     text:s,
                     id:0,
                 },

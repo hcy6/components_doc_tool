@@ -1,6 +1,6 @@
 package com.tellhao.doc.util;
 
-import com.tellhao.doc.entity.TreeMember;
+import com.tellhao.doc.entity.FileTree;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,55 +14,49 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 
+/**
+ * @author: 韩聪寅
+ * @create: 2019-11-27
+ **/
 @Service
 public class FileOperation {
-    @Value("${fileaddress}")
-    private String fileaddress;
+    private static final String SPOT = ".";
+    private static final String COMMA = ",";
+    @Value("${fileAddress}")
+    private String fileAddress;
 
 
-    //取出目录下的所有文件-------------------------------------------------------------
-    public List<TreeMember> getfiletree(String path, List list) {
+    /**
+     * 取出目录下的所有文件-------------------------------------------------------------
+     */
+    public List<FileTree> getFileTree(String path, List<FileTree> list) {
 
-        List<TreeMember> tree = new ArrayList<TreeMember>();
-        File file = new File(path.trim());
-        TreeMember treemember = new TreeMember();
-        treemember.setId("/");
-        treemember.setText("/");
-        treemember.setChildren(list);
-        tree.add(treemember);
+        List<FileTree> tree = new ArrayList<FileTree>();
+        FileTree fileTree = new FileTree();
+        fileTree.setId("/");
+        fileTree.setText("/");
+        fileTree.setChildren(list);
+        tree.add(fileTree);
         return tree;
     }
 
-    public List<TreeMember> getfiletree(String path, String extension) {
-
-        FileOperation get = new FileOperation();
-        List<TreeMember> tree = new ArrayList<TreeMember>();
+    public List<FileTree> getFileTree(String path, String extension) {
+        List<FileTree> tree = new ArrayList<FileTree>();
         File trailDir = new File(path.trim());
-        List<TreeMember> tree1 = new ArrayList<TreeMember>();
+        List<FileTree> treeNode = new ArrayList<FileTree>();
         for (File file : trailDir.listFiles()) {
-            TreeMember treemember = new TreeMember();
             if (file.isFile()) {
-                if (extensionfile(file.getName(), extension)) {
-                    treemember.setId(file.getName());
-                    treemember.setText(file.getName());
-                    treemember.setPid(file.getName());
-//                    file.getAbsolutePath()
-                    tree.add(treemember);
+                if (extensionFile(file.getName(), extension)) {
+                      tree.add(setFileTree(file));
                 }
             }
             if (file.isDirectory() && !file.getName().endsWith(".back")) {
                 try {
-                    tree1 = get.getfiletree(file.getCanonicalPath(), extension);
+                    treeNode = getFileTree(file.getCanonicalPath(), extension);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                if(tree1.size()>0){}
-                treemember.setId(file.getName());
-                treemember.setText(file.getName());
-                treemember.setPid(file.getName());
-                treemember.setChildren(tree1);
-                treemember.setUid(1);
-                tree.add(0, treemember);
+                tree.add(0, setFileTree(file,treeNode));
 
             }
         }
@@ -70,49 +64,30 @@ public class FileOperation {
 
     }
 
-    public List<TreeMember> getdelfiletree(String path, int id) {
-
-        FileOperation get = new FileOperation();
-        List<TreeMember> tree = new ArrayList<TreeMember>();
+    public List<FileTree> getFileTree(String path, int id) {
+        List<FileTree> tree = new ArrayList<FileTree>();
         File trailDir = new File(path.trim());
-        List<TreeMember> tree1 = new ArrayList<TreeMember>();
+        List<FileTree> treeNode = new ArrayList<FileTree>();
         for (File file : trailDir.listFiles()) {
-            TreeMember treemember = new TreeMember();
             if (file.isFile()) {
-                if (extensionfile(file.getName(), id)) {
-                    treemember.setId(file.getName());
-                    treemember.setText(file.getName());
-                    treemember.setPid(file.getName());
-//                    file.getAbsolutePath()
-                    tree.add(treemember);
+                if (extensionFile(file.getName(), id)) {
+                    tree.add(setFileTree(file));
                 }
             } else if (file.isDirectory() && file.getName().endsWith(".back")) {
                 try {
-                    tree1 = get.getdelfiletree(file.getCanonicalPath(), 0);
+                    treeNode =getFileTree(file.getCanonicalPath(), 0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                if (tree1.size() > 0) {}
-                treemember.setId(file.getName());
-                treemember.setText(file.getName());
-                treemember.setPid(file.getName());
-                treemember.setChildren(tree1);
-                treemember.setUid(1);
-                tree.add(0, treemember);
-
+                tree.add(0, setFileTree(file,treeNode));
             } else {
                 try {
-                    tree1 = get.getdelfiletree(file.getCanonicalPath(), id);
+                    treeNode =getFileTree(file.getCanonicalPath(), id);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (tree1.size() > 0) {
-                    treemember.setId(file.getName());
-                    treemember.setText(file.getName());
-                    treemember.setPid(file.getName());
-                    treemember.setChildren(tree1);
-                    treemember.setUid(1);
-                    tree.add(0, treemember);
+                if (treeNode.size() > 0) {
+                    tree.add(0,setFileTree(file,treeNode));
                 }
             }
         }
@@ -120,8 +95,24 @@ public class FileOperation {
 
     }
 
+    public FileTree setFileTree(File file){
+        FileTree fileTree=new FileTree();
+        fileTree.setId(file.getName());
+        fileTree.setText(file.getName());
+        fileTree.setPid(file.getName());
+        return fileTree;
+    }
+    public FileTree setFileTree(File file,List<FileTree> treeNode){
+        FileTree fileTree=setFileTree(file);
+        fileTree.setChildren(treeNode);
+        fileTree.setUid(1);
+        return fileTree;
+    }
 
-    public Boolean extensionfile(String file, int id) {
+
+
+
+    public Boolean extensionFile(String file, int id) {
         if (id == 1) {
             return file.endsWith(".back") ? true : false;
         } else {
@@ -129,14 +120,14 @@ public class FileOperation {
         }
     }
 
-    public Boolean extensionfile(String file, String extension) {
+    public Boolean extensionFile(String file, String extension) {
         if (!"".equals(extension)) {
-            if (file.lastIndexOf(".") > 0) {
-                String Suffix = file.substring(file.lastIndexOf("."));
+            if (file.lastIndexOf(SPOT) > 0) {
+                String suffix = file.substring(file.lastIndexOf(SPOT));
                 int flag = 0;
-                String[] strAry = extension.split(",");
+                String[] strAry = extension.split(COMMA);
                 for (int i = 0; i < strAry.length; i++) {
-                    if (Suffix.equals(strAry[i])) {
+                    if (suffix.equals(strAry[i])) {
                         flag = 1;
                         break;
                     }
@@ -150,14 +141,15 @@ public class FileOperation {
         }
     }
 
-
-    //删除文件--------------------------------------------------------------------------
-    public int delFile(String delname, String address) {
+    /**
+     * 删除文件
+     */
+    public int delFile(String delName, String address) {
         try {
-            String path = fileaddress + address + delname;
+            String path = fileAddress + address + delName;
             File file = new File(path);
-            SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
-            String date = dateformat.format(new Date());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+            String date = dateFormat.format(new Date());
             if (file.exists()) {
                 File back = new File(path + "." + date + ".back");
                 return file.renameTo(back) ? 1 : 0;
@@ -171,11 +163,11 @@ public class FileOperation {
     }
 
 
-    public int truedelFile(String delname, String address, int id) {
+    public int trueDelFile(String delName, String address, int id) {
         //老师我想问这个方法，要不要分出两个子函数出来，然后这个函数判段用哪个，然后各自递归调用
         try {
-            File file = new File(fileaddress + address + delname);
-            String delfilename = "";
+            File file = new File(fileAddress + address + delName);
+            String delFileName = "";
 //            id=0,删除.back文件
             if (id == 0) {
                 if (file.exists()) {
@@ -183,14 +175,14 @@ public class FileOperation {
                         file.delete();
                         return 1;
                     } else {
-                        for (File delfile : file.listFiles()) {
-                            if (delfile.isFile()) {
-                                if (delfile.getName().endsWith(".back")) {
-                                    delfile.delete();
+                        for (File delFile : file.listFiles()) {
+                            if (delFile.isFile()) {
+                                if (delFile.getName().endsWith(".back")) {
+                                    delFile.delete();
                                 }
                             } else {
-                                delfilename = delname + "/" + delfile.getName();
-                                truedelFile(delfilename, address, id);
+                                delFileName = delName + "/" + delFile.getName();
+                                trueDelFile(delFileName, address, id);
                             }
                         }
                         return 2;
@@ -200,12 +192,12 @@ public class FileOperation {
                 }
 
             } else {  //id！=0 删除文件夹下得所有文件（包括本身）
-                for (File delfile : file.listFiles()) {
-                    if (delfile.isFile()) {
-                        delfile.delete();
+                for (File delFile : file.listFiles()) {
+                    if (delFile.isFile()) {
+                        delFile.delete();
                     } else {
-                        delfilename = delname + "/" + delfile.getName();
-                        truedelFile(delfilename, address, id);
+                        delFileName = delName + "/" + delFile.getName();
+                        trueDelFile(delFileName, address, id);
                     }
                     file.delete();
                 }
@@ -220,42 +212,47 @@ public class FileOperation {
 
     }
 
-    //文件名的修改-------------------------------------------------------------------------
-    public int renameFile(String path, String rename, String oldname) {
-        String oldnamed = fileaddress + path + oldname;
-        File oldfile = new File(oldnamed);
-        String newname = fileaddress + path + rename;
-        File refile = new File(newname);
-        //检查要重命名的文件是否存在，是否是文件
-        if (!oldfile.exists() && refile.exists()) {
+    /**
+     * 文件名的修改
+     */
+    public int renameFile(String path, String rename, String oldName) {
+        String oldNamed = fileAddress + path + oldName;
+        File oldFile = new File(oldNamed);
+        String newName = fileAddress + path + rename;
+        File refile = new File(newName);
+        /*检查要重命名的文件是否存在，是否是文件*/
+        if (!oldFile.exists() && refile.exists()) {
             return 0;
         } else {
-            return oldfile.renameTo(refile) ? 1 : 0;
+            return oldFile.renameTo(refile) ? 1 : 0;
         }
 
     }
 
-    // 新创文件夹
-    public String newfile(String path, String filename) {
+    /**
+     *新建文件夹
+     */
+    public String newFile(String path, String fileName) {
 
-        String address = fileaddress + path;
+        String address = fileAddress + path;
         int j = 1;
         File file = new File(address);
         String[] fileList = file.list();
         for (int i = 0; i < fileList.length; i++) {
-            if (fileList[i].equals(filename)) {
-                filename = "Newfile" + j;
+            if (fileList[i].equals(fileName)) {
+                fileName = "newFile" + j;
                 j++;
                 i = 0;
             }
         }
-        File newfile = new File(address + "/" + filename);
-        newfile.mkdirs();
-        return filename;
+        File newFile = new File(address + "/" + fileName);
+        newFile.mkdirs();
+        return fileName;
     }
 
-    //文件的压缩
-
+    /**
+     * 文件的压缩
+     */
     public String zip(String zipFileName, String sourceFileName) {
         System.out.println("压缩中...");
         ZipOutputStream out = null;
@@ -282,42 +279,42 @@ public class FileOperation {
     }
 
     public void compression(ZipOutputStream out, File sourceFile, String base) {
-        //如果路径为目录（文件夹）
+        /*如果路径为目录（文件夹）*/
         if (sourceFile.isDirectory()) {
-            //取出文件夹中的文件（或子文件夹）
-            File[] filelist = sourceFile.listFiles();
-            if (filelist.length == 0)//如果文件夹为空，则只需在目的地zip文件中写入一个目录进入点
-            {
+            /*取出文件夹中的文件（或子文件夹）*/
+            File[] fileList = sourceFile.listFiles();
+            /*如果文件夹为空，则只需在目的地zip文件中写入一个目录进入点*/
+            if (fileList.length == 0) {
                 try {
                     out.putNextEntry(new ZipEntry(base + "/"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } else//如果文件夹不为空，则递归调用compress，文件夹中的每一个文件（或文件夹）进行压缩
+            } else /*如果文件夹不为空，则递归调用compress，文件夹中的每一个文件（或文件夹）进行压缩*/
             {
-                for (int i = 0; i < filelist.length; i++) {
-                    compression(out, filelist[i], base + "/" + filelist[i].getName());
+                for (int i = 0; i < fileList.length; i++) {
+                    compression(out, fileList[i], base + "/" + fileList[i].getName());
                 }
             }
-        } else//如果不是目录（文件夹），即为文件，则先写入目录进入点，之后将文件写入zip文件中
-        {
-            BufferedInputStream bis = null;
-            FileInputStream fos = null;
+            /*如果不是目录（文件夹），即为文件，则先写入目录进入点，之后将文件写入zip文件中*/
+        } else {
+            BufferedInputStream inputStream = null;
+            FileInputStream fileIn = null;
             try {
                 out.putNextEntry(new ZipEntry(base));
-                fos = new FileInputStream(sourceFile);
-                bis = new BufferedInputStream(fos);
-                int tag;
-                //将源文件写入到zip文件中
-                while ((tag = bis.read()) != -1) {
-                    out.write(tag);
+                fileIn = new FileInputStream(sourceFile);
+                inputStream = new BufferedInputStream(fileIn);
+                int count;
+                /*将源文件写入到zip文件中*/
+                while ((count = inputStream.read()) != -1) {
+                    out.write(count);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
-                    bis.close();
-                    fos.close();
+                    inputStream.close();
+                    fileIn.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

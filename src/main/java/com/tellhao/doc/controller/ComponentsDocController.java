@@ -1,6 +1,6 @@
 package com.tellhao.doc.controller;
 
-import com.tellhao.doc.entity.TreeMember;
+import com.tellhao.doc.entity.FileTree;
 import com.tellhao.doc.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,70 +15,71 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
-
+/**
+ * @author: 韩聪寅
+ * @create: 2019-11-27
+ **/
 @Controller
 public class ComponentsDocController {
-    @Value("${fileaddress}")
-    private String fileaddress;
-    @Value("${zipFileName}")
-    private String zipFilenName;
+    @Value("${fileAddress}")
+    private String fileAddress;
 
     @Autowired
     FileOperation fileOperation;
     @Autowired
     TextOperation textOperation;
     @Autowired
-    FileLoad fileload;
+    FileLoad fileLoad;
 
 
-    @RequestMapping("/uploadtext")
+    @RequestMapping("/uploadText")
     @ResponseBody
-    public int uploadtext(String text, String filename, String addressname, int id) {
+    public int uploadText(String text, String fileName, String addressName, int id) {
 
-        return id == 0 ? textOperation.saveAsFileWriter(text, filename, addressname) : textOperation.newFileWriter(text, filename, addressname);
+        return id == 0 ? textOperation.saveAsFileWriter(text, fileName, addressName) : textOperation.newFileWriter(text, fileName, addressName);
     }
 
-    @RequestMapping("/gettext")
+    @RequestMapping("/getText")
     @ResponseBody
-    public String gettext(String addressname, String filename) {
-        return textOperation.turnFileTxt(addressname, filename);
+    public String getText(String addressName, String fileName) {
+        return textOperation.turnFileTxt(addressName, fileName);
     }
 
-    @RequestMapping("/delfile")
+    @RequestMapping("/delFile")
     @ResponseBody
-    public int del(String delname, int ctrli, String address, int id) {
-        return ctrli == 0 ? fileOperation.delFile(delname, address) : fileOperation.truedelFile(delname, address, id);
-    }
-
-
-    @RequestMapping("/getfiletree")
-    @ResponseBody
-    public List<TreeMember> getfiletree(@Value("${fileaddress}") String path, int id, String fileaddress) {
-        return id == 0 ? fileOperation.getfiletree(path, fileOperation.getfiletree(path, fileaddress)) : fileOperation.getfiletree(path, fileOperation.getdelfiletree(path, 1));
-
+    public int delFile(String delName, int ctrl, String address, int id) {
+        return ctrl == 0 ? fileOperation.delFile(delName, address) : fileOperation.trueDelFile(delName, address, id);
     }
 
 
-    @RequestMapping("/newfile")
+    @RequestMapping("/getFileTree")
     @ResponseBody
-    public String getdelfiletree(String path, String filename) {
-        return fileOperation.newfile(path, filename);
+    public List<FileTree> getFileTree(@Value("${fileAddress}") String path, int id, String fileAddress) {
+        return id == 0 ? fileOperation.getFileTree(path, fileOperation.getFileTree(path, fileAddress)) : fileOperation.getFileTree(path, fileOperation.getFileTree(path, 1));
+
     }
 
 
-    @RequestMapping("/renamed")
+    @RequestMapping("/newFile")
     @ResponseBody
-    public int Renamed(String path, String Rename, String oldname) {
-        return fileOperation.renameFile(path, Rename, oldname);
+    public String newFile(String path, String fileName) {
+        return fileOperation.newFile(path, fileName);
+    }
+
+
+    @RequestMapping("/rename")
+    @ResponseBody
+    public int rename(String path, String rename, String oldName) {
+        return fileOperation.renameFile(path, rename, oldName);
     }
 
     @RequestMapping("/download")
     @ResponseBody
-    public String download(String address, String filename, HttpServletResponse response, int i) {
+    public String download(String address, String fileName, HttpServletResponse response, int i) {
         if (i == 1) {
-            fileload.download(address, filename, response, i);
+            fileLoad.download(address, fileName, response, i);
         } else {
-            fileload.download(fileOperation.zip(zipFilenName, fileaddress), filename, response, i);
+            fileLoad.download(fileOperation.zip(fileAddress + ".zip", fileAddress), fileName, response, i);
         }
         return "redirect:index.html";
     }
@@ -86,14 +87,8 @@ public class ComponentsDocController {
     @RequestMapping("/upload")
     @ResponseBody
     public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        return fileload.fileUpload(file, request);
+        return fileLoad.fileUpload(file, request);
     }
 
-
-//    @RequestMapping("/test")
-//    @ResponseBody
-//    public String test(String addressname, String filename){
-//        return textOperation.readFileByByte(addressname,filename);
-//    }
 
 }

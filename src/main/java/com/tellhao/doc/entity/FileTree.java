@@ -2,7 +2,11 @@ package com.tellhao.doc.entity;
 
 import java.util.List;
 
-public class TreeMember {
+/**
+ * @author: 韩聪寅
+ * @create: 2019-11-27
+ **/
+public class FileTree {
     private String id;
     private String text;
     private String pid;
@@ -16,7 +20,7 @@ public class TreeMember {
         this.uid = uid;
     }
 
-    private List<TreeMember> children;
+    private List<FileTree> children;
 
     public String getPid() {
         return pid;
@@ -42,11 +46,11 @@ public class TreeMember {
         this.text = text;
     }
 
-    public List<TreeMember> getChildren() {
+    public List<FileTree> getChildren() {
         return children;
     }
 
-    public void setChildren(List<TreeMember> children) {
+    public void setChildren(List<FileTree> children) {
         this.children = children;
     }
 }
