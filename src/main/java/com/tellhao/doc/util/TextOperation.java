@@ -6,24 +6,28 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 
+/**
+ * @author: 韩聪寅
+ * @create: 2019-11-27
+ **/
 @Service
 public class TextOperation {
-    @Value("${fileaddress}")
-    private String fileaddress;
+    @Value("${fileAddress}")
+    private String fileAddress;
 
-    public int fileWrter(String filePath, String content) {
-        FileWriter filewriter = null;
+    public int fileWriter(String filePath, String content) {
+        FileWriter fileWriter = null;
         try {
-            filewriter = new FileWriter(filePath);
-            filewriter.write(content);
+            fileWriter = new FileWriter(filePath);
+            fileWriter.write(content);
         } catch (IOException ex) {
             ex.printStackTrace();
             System.out.println("存入失败");
             return 0;
         } finally {
             try {
-                filewriter.flush();
-                filewriter.close();
+                fileWriter.flush();
+                fileWriter.close();
             } catch (IOException ex) {
                 ex.printStackTrace();
                 System.out.println("关闭流失败");
@@ -32,33 +36,34 @@ public class TextOperation {
         return 1;
     }
 
-    public int saveAsFileWriter(String content, String filename, String addressname) {
-        String filePath = fileaddress + addressname + filename;
+    public int saveAsFileWriter(String content, String fileName, String addressName) {
+        String filePath = fileAddress + addressName + fileName;
         File file = new File(filePath);
-        return !file.isDirectory() ? file.exists() ? fileWrter(filePath, content) : 0 : 0;
+        return !file.isDirectory() ? file.exists() ? fileWriter(filePath, content) : 0 : 0;
     }
 
-    public int newFileWriter(String content, String filename, String addressname) {
-        String filePath = (filename.lastIndexOf(".") < 0) ? fileaddress + addressname + "/" + filename + ".md" : fileaddress + addressname + "/" + filename;
+    public int newFileWriter(String content, String fileName, String addressName) {
+        String filePath = (fileName.lastIndexOf(".") < 0) ? fileAddress + addressName + "/" + fileName + ".md" : fileAddress + addressName + "/" + fileName;
         File file = new File(filePath);
-        return !file.exists() ? fileWrter(filePath, content) : 0;
-
+        return !file.exists() ? fileWriter(filePath, content) : 0;
 
     }
 
-    //    文本转字符串
-    public String turnFileTxt(String path, String Filename) {
+    /**
+     * 文本转字符串
+     */
+    public String turnFileTxt(String path, String fileName) {
         StringBuffer content = new StringBuffer();
         InputStreamReader reader = null;
-        BufferedReader outreader = null;
+        BufferedReader outReader = null;
         try {
-            String pathname = fileaddress + path + Filename;
-            File filename = new File(pathname);
-            reader = new InputStreamReader(new FileInputStream(filename), "UTF-8");
-            outreader = new BufferedReader(reader);
+            String pathname = fileAddress + path + fileName;
+            File file = new File(pathname);
+            reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
+            outReader = new BufferedReader(reader);
             String line = "";
             while (line != null) {
-                line = outreader.readLine();
+                line = outReader.readLine();
                 if (line == null) {
                     content.append(" ");
                 } else {
@@ -70,7 +75,7 @@ public class TextOperation {
             System.out.println("读数据有误");
         } finally {
             try {
-                outreader.close();
+                outReader.close();
                 reader.close();
             } catch (IOException e) {
                 e.printStackTrace();

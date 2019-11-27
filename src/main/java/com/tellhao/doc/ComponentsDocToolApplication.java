@@ -3,11 +3,15 @@ package com.tellhao.doc;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * @author: 韩聪寅
+ * @create: 2019-11-27
+ **/
 @SpringBootApplication
-public class ComponentsdoctoolApplication {
+public class ComponentsDocToolApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ComponentsdoctoolApplication.class, args);
+        SpringApplication.run(ComponentsDocToolApplication.class, args);
     }
 
 }

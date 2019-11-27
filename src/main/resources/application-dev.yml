@@ -9,10 +9,11 @@
 #  mapper-locations: classpath:org/lanqiao/mapper/*.xml
 #  type-aliases-package: org.lanqiao.entity
 
-fileaddress: G:/JAVA/components-doc/docs/
-zipFileName: G:/JAVA/zip/docs.zip
+fileAddress: G:/JAVA/components-doc/components-doc/docs/
+imgAddress: G:/JAVA/components-doc/docs/media/
 #  G:/JAVA/components-doc/docs/components/
 #/home/tellhow/middleware/components-doc/docs/
+
 server:
   port: 9876
 

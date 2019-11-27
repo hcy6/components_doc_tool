@@ -90,12 +90,12 @@
                 var rename = node.text;
                 var n = Charmosaic(gitr.getAncestors(node));
                 $.ajax({
-                    url: "/renamed",
+                    url: "/rename",
                     type: "post",
                     data: {
                         path: n,
-                        Rename: rename,
-                        oldname: oldname,
+                        reName: rename,
+                        oldName: oldname,
                     },
                     datatype: "json",
                     success: function (data) {
@@ -124,7 +124,7 @@
                     var text1 = mini.get("editaddress1");
                     text.setValue(n);
                     text1.setValue(node.text);
-                    gettext(n, node);
+                    getText(n, node);
                 }
             });
             //    双击节点
@@ -189,13 +189,13 @@
         });
 
         //读取内容
-        function gettext(n, node) {
+        function getText(n, node) {
             $.ajax({
-                url: "/gettext",
+                url: "/getText",
                 type: "post",
                 data: {
-                    addressname: n,
-                    filename: node.text,
+                    addressName: n,
+                    fileName: node.text,
                 },
                 datatype: "json",
                 success: function (data) {
@@ -210,7 +210,7 @@
         function Deltreefile() {
             var tree = mini.get("delTree");
             $.ajax({
-                url: "/getfiletree",
+                url: "/getFileTree",
                 type: "post",
                 data: {
                     id: 1,
@@ -231,10 +231,10 @@
             var combobox = mini.get("combobox");
             var tree = mini.get("leftTree");
             $.ajax({
-                url: "/getfiletree",
+                url: "/getFileTree",
                 type: "post",
                 data: {
-                    fileaddress: combobox.value,
+                    fileAddress: combobox.value,
                     id: 0,
                 },
                 datatype: "json",
@@ -335,11 +335,11 @@
             var tabs = mini.get("mainTabs");
             var explain = mini.get("Explain");
             $.ajax({
-                url: "/gettext",
+                url: "/getText",
                 type: "post",
                 data: {
-                    addressname: "",
-                    filename: "Explain.txt",
+                    addressName: "",
+                    fileName: "Explain.txt",
                 },
                 datatype: "json",
                 success: function (data) {
@@ -377,11 +377,11 @@
             newNode.asyncLoad = false;
             newNode.value = "Newfile";
             $.ajax({
-                url: "/newfile",
+                url: "/newFile",
                 type: "post",
                 data: {
                     path: n,
-                    filename: newNode.value,
+                    fileName: newNode.value,
                 },
                 datatype: "json",
                 success: function (data) {
@@ -399,11 +399,11 @@
             var editaddress = mini.get("editaddress");
             var editaddress1 = mini.get("editaddress1");
             mini.ajax({
-                url: "/uploadtext",
+                url: "/uploadText",
                 type: "post",
                 data: {
-                    addressname: editaddress.value,
-                    filename: editaddress1.value,
+                    addressName: editaddress.value,
+                    fileName: editaddress1.value,
                     text: editor.markdownTextarea[0].defaultValue,
                     id: 0,
                 },
@@ -424,12 +424,12 @@
             if (node) {
                 if (confirm("确定删除选中节点?")) {
                     mini.ajax({
-                        url: "/delfile",
+                        url: "/delFile",
                         type: "post",
                         data: {
                             address: n,
-                            delname: node.text,
-                            ctrli: 0,
+                            delName: node.text,
+                            ctrl: 0,
                             id: 0,
                         },
                         datatype: "json",
@@ -456,13 +456,13 @@
             if (node) {
                 if (confirm("确定删除选中节点?")) {
                     mini.ajax({
-                        url: "/delfile",
+                        url: "/delFile",
                         type: "post",
                         data: {
                             address: n,
-                            delname: node.text,
+                            delName: node.text,
                             id: id,
-                            ctrli: 1,
+                            ctrl: 1,
                         },
                         datatype: "json",
                         success: function (data) {
@@ -661,7 +661,7 @@
 </div>
 <form action="/download" id="download" method="post" enctype="multipart/form-data" style="display:none;">
     <input id="address" type="text" name="address" style="display: none">
-    <input id="filename" type="text" name="filename" style="display: none">
+    <input id="filename" type="text" name="fileName" style="display: none">
     <input id="i" type="text" name="i" style="display: none">
 
 </form>
