@@ -3,12 +3,10 @@ package com.tellhao.doc.controller;
 import com.tellhao.doc.entity.FileTree;
 import com.tellhao.doc.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +17,7 @@ import java.util.*;
  * @author: 韩聪寅
  * @create: 2019-11-27
  **/
-@Controller
+@RestController
 public class ComponentsDocController {
     @Value("${fileAddress}")
     private String fileAddress;
@@ -32,49 +30,54 @@ public class ComponentsDocController {
     FileLoad fileLoad;
 
 
-    @RequestMapping("/uploadText")
-    @ResponseBody
-    public int uploadText(String text, String fileName, String addressName, int id) {
-
-        return id == 0 ? textOperation.saveAsFileWriter(text, fileName, addressName) : textOperation.newFileWriter(text, fileName, addressName);
+    @RequestMapping("/updateText")
+    public int updateText(String text, String fileName, String addressName) {
+        return  textOperation.saveAsFileWriter(text, fileName, addressName);
     }
-
+    @RequestMapping("/addText")
+    public int addText(String text, String fileName, String addressName) {
+        return  textOperation.newFileWriter(text, fileName, addressName);
+    }
     @RequestMapping("/getText")
-    @ResponseBody
     public String getText(String addressName, String fileName) {
         return textOperation.turnFileTxt(addressName, fileName);
     }
 
+
     @RequestMapping("/delFile")
-    @ResponseBody
-    public int delFile(String delName, int ctrl, String address, int id) {
-        return ctrl == 0 ? fileOperation.delFile(delName, address) : fileOperation.trueDelFile(delName, address, id);
+    public int delFile(String delName, String address) {
+        return  fileOperation.delFile(delName, address) ;
+    }
+    @RequestMapping("/delFileFromDisk")
+    public int delFileFromDisk(String delName, String address, int id) {
+        return fileOperation.trueDelFile(delName, address, id);
     }
 
 
     @RequestMapping("/getFileTree")
-    @ResponseBody
-    public List<FileTree> getFileTree(@Value("${fileAddress}") String path, int id, String fileAddress) {
-        return id == 0 ? fileOperation.getFileTree(path, fileOperation.getFileTree(path, fileAddress)) : fileOperation.getFileTree(path, fileOperation.getFileTree(path, 1));
+    public List<FileTree> getFileTree(@Value("${fileAddress}") String path,  String fileAddress) {
+        return  fileOperation.getFileTree(path, fileOperation.getFileTree(path, fileAddress));
+    }
+    @RequestMapping("/getDelFileTree")
+    public List<FileTree> getDelFileTree(@Value("${fileAddress}") String path) {
+        return fileOperation.getFileTree(path, fileOperation.getFileTree(path, 1));
 
     }
 
 
-    @RequestMapping("/newFile")
-    @ResponseBody
+
+    @RequestMapping("/addFile")
     public String newFile(String path, String fileName) {
         return fileOperation.newFile(path, fileName);
     }
 
 
     @RequestMapping("/rename")
-    @ResponseBody
     public int rename(String path, String rename, String oldName) {
         return fileOperation.renameFile(path, rename, oldName);
     }
 
     @RequestMapping("/download")
-    @ResponseBody
     public String download(String address, String fileName, HttpServletResponse response, int i) {
         if (i == 1) {
             fileLoad.download(address, fileName, response, i);
@@ -83,9 +86,7 @@ public class ComponentsDocController {
         }
         return "redirect:index.html";
     }
-
     @RequestMapping("/upload")
-    @ResponseBody
     public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         return fileLoad.fileUpload(file, request);
     }

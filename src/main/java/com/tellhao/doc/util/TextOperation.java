@@ -1,6 +1,10 @@
 package com.tellhao.doc.util;
 
 
+
+
+
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,22 +19,22 @@ public class TextOperation {
     @Value("${fileAddress}")
     private String fileAddress;
 
+    private Logger logger=Logger.getLogger(TextOperation.class);
+
     public int fileWriter(String filePath, String content) {
         FileWriter fileWriter = null;
         try {
             fileWriter = new FileWriter(filePath);
             fileWriter.write(content);
         } catch (IOException ex) {
-            ex.printStackTrace();
-            System.out.println("存入失败");
+            logger.error("异常问题："+ex.getMessage());
             return 0;
         } finally {
             try {
                 fileWriter.flush();
                 fileWriter.close();
             } catch (IOException ex) {
-                ex.printStackTrace();
-                System.out.println("关闭流失败");
+                logger.error("异常问题："+ex.getMessage());
             }
         }
         return 1;
@@ -70,16 +74,14 @@ public class TextOperation {
                     content.append("\r\n").append(line);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("读数据有误");
+        } catch (Exception ex) {
+            logger.error("异常问题："+ex.getMessage());
         } finally {
             try {
                 outReader.close();
                 reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println("关闭流失败");
+            } catch (Exception e) {
+                logger.error("异常问题："+e.getMessage());
             }
 
         }

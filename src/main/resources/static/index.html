@@ -94,7 +94,7 @@
                     type: "post",
                     data: {
                         path: n,
-                        reName: rename,
+                        rename: rename,
                         oldName: oldname,
                     },
                     datatype: "json",
@@ -112,6 +112,8 @@
                 })
 
             });
+            //还原
+
             //    单击节点
             gitr.on("nodeclick", function () {
                 var tabs = mini.get(mainTabs);
@@ -210,11 +212,9 @@
         function Deltreefile() {
             var tree = mini.get("delTree");
             $.ajax({
-                url: "/getFileTree",
+                url: "/getDelFileTree",
                 type: "post",
-                data: {
-                    id: 1,
-                },
+                data: {},
                 datatype: "json",
                 success: function (data) {
                     tree.loadData(data);
@@ -235,7 +235,6 @@
                 type: "post",
                 data: {
                     fileAddress: combobox.value,
-                    id: 0,
                 },
                 datatype: "json",
                 success: function (data) {
@@ -377,7 +376,7 @@
             newNode.asyncLoad = false;
             newNode.value = "Newfile";
             $.ajax({
-                url: "/newFile",
+                url: "/addFile",
                 type: "post",
                 data: {
                     path: n,
@@ -399,7 +398,7 @@
             var editaddress = mini.get("editaddress");
             var editaddress1 = mini.get("editaddress1");
             mini.ajax({
-                url: "/uploadText",
+                url: "/updateText",
                 type: "post",
                 data: {
                     addressName: editaddress.value,
@@ -429,8 +428,6 @@
                         data: {
                             address: n,
                             delName: node.text,
-                            ctrl: 0,
-                            id: 0,
                         },
                         datatype: "json",
                         success: function (data) {
@@ -456,17 +453,16 @@
             if (node) {
                 if (confirm("确定删除选中节点?")) {
                     mini.ajax({
-                        url: "/delFile",
+                        url: "/delFileFromDisk",
                         type: "post",
                         data: {
                             address: n,
                             delName: node.text,
                             id: id,
-                            ctrl: 1,
                         },
                         datatype: "json",
                         success: function (data) {
-                            if (data == 1 && id == 1) {
+                            if (data == 1) {
                                 tree.removeNode(node);
                                 alert("删除成功");
                             } else if (data == 2) {
