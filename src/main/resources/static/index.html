@@ -113,7 +113,35 @@
 
             });
             //还原
+            deltree.on("endedit",function () {
+                var node=deltree.getSelectedNode();
+                var oldname = node.pid;
+                var rename = node.text;
+                var n = Charmosaic(deltree.getAncestors(node));
+                $.ajax({
+                    url: "/rename",
+                    type: "post",
+                    data: {
+                        path: n,
+                        rename: rename,
+                        oldName: oldname,
+                    },
+                    datatype: "json",
+                    success: function (data) {
+                        if (data == 1) {
+                            deltree.updateNode(node, {pid: rename, id: rename});
+                            deltree.removeNode();
+                            alert("修改成功");
+                        } else {
+                            deltree.setNodeText(node, oldname);
+                            alert("修改失败");
+                        }
 
+                    }
+
+                })
+
+            })
             //    单击节点
             gitr.on("nodeclick", function () {
                 var tabs = mini.get(mainTabs);

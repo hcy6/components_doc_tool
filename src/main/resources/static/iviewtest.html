@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="editormd/css/editormd.css"/>
+    <!--markdown -->
+    <script src="scripts/jquery.min.js"></script>
+    <script src="editormd/editormd.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="view-design/dist/styles/iview.css">
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="view-design/dist/iview.min.js"></script>
+
+<style>
+    #app{
+     height: 100vh;
+    }
+    .layout{
+        height: 100%;
+        border: 1px solid #d7dde4;
+        background: #f5f7f9;
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+
+    }
+    .layout-logo{
+        width: 100px;
+        height: 30px;
+        background: #5b6270;
+        border-radius: 3px;
+        float: left;
+        position: relative;
+        top: 15px;
+        left: 20px;
+    }
+    .layout-nav{
+        width: 420px;
+        margin: 0 auto;
+        margin-right: 20px;
+    }
+</style>
+<script>
+    function onlow(data) {
+        var editor = editormd("test-editor", {
+            // placeholder:data,
+            width: "100%",
+            height: 545,
+            markdown: data,
+            path: "../editormd/lib/",
+        });
+    }
+</script>
+
+</head>
+<body onload="onlow()">
+
+<div id="app">
+    <div class="layout">
+        <layout>
+            <i-header>
+                <i-menu mode="horizontal" theme="dark" active-name="1">
+                    <div class="layout-logo"></div>
+                    <div class="layout-nav">
+                        <i-button style="float: right; margin-top: 15px;margin-left: 5px" icon="ios-download-outline" type="primary">下载</i-button>
+                        <i-button style="float: right; margin-top: 15px " icon="ios-list-box" type="primary">更改目录</i-button>
+
+                    </div>
+                </i-menu>
+            </i-header>
+            <layout style="position: absolute;top: 64px;bottom: 0px;left: 0px;right: 0px;">
+                <sider hide-trigger :style="{background: '#fff' }   ">
+                    <tabs type="card" id="treeTabs" >
+                        <tab-pane label="正在使用">
+                            <i-select  multiple style="width:200px">
+                                <i-option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+                            </i-select>
+                            <tree :data="data1"></tree>
+                        </tab-pane>
+                        <tab-pane label="已删除" > <tree :data="data2"></tree></tab-pane>
+                    </tabs>
+
+                </sider>
+
+                <layout :style="{padding: '0 2px 2px'}">
+                    <tabs type="card"  @on-tab-remove="handleTabRemove">
+                        <tab-pane label="标签一" >标签一的内容</tab-pane>
+                        <tab-pane label="标签二"  >
+                            <div id="test-editor" class="mini-fit">
+                                <textarea id="di" class="mini-fit" style="display:none; height: 100%"></textarea>
+                            </div>
+                        </tab-pane>
+                        <tab-pane label="标签三"  closable>标签三的内容</tab-pane>
+                    </tabs>
+                </layout>
+            </layout>
+        </layout>
+    </div>
+</div>
+
+</body>
+<script>
+    var Main = {
+        data() {
+            return {
+                data1: [
+                    {
+                        title: 'parent 1',
+                        expand: true,
+                        children: [
+                            {
+                                title: 'child 1-1',
+                                expand: true,
+                                children: [
+                                    {
+                                        title: 'leaf 1-1-1',
+                                        expand: true
+                                    },
+                                    {
+                                        title: 'leaf 1-1-2',
+                                        expand: true
+                                    }
+                                ]
+                            },
+                            {
+                                title: 'child 1-2',
+                                expand: true,
+                                children: [
+                                    {
+                                        title: 'leaf 1-2-1',
+                                        expand: true
+                                    },
+                                    {
+                                        title: 'leaf 1-2-1',
+                                        expand: true
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                data2: [
+                    {
+                        title: 'parent 1',
+                        expand: true,
+                        children: [
+                            {
+                                title: 'child 1-1',
+                                expand: true,
+                                children: [
+                                    {
+                                        title: 'leaf 1-1-1',
+                                        expand: true
+                                    },
+                                    {
+                                        title: 'leaf 1-1-2',
+                                        expand: true
+                                    }
+                                ]
+                            },
+                            {
+                                title: 'child 1-2',
+                                expand: true,
+                                children: [
+                                    {
+                                        title: 'leaf 1-2-1',
+                                        expand: true
+                                    },
+                                    {
+                                        title: 'leaf 1-2-1',
+                                        expand: true
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                cityList: [
+                    {
+                        value: '.md',
+                        label: '.md'
+                    },
+                    {
+                        value: '.js',
+                        label:  '.js'
+                    },
+                    {
+                        value: '.txt',
+                        label:  '.txt'
+                    },
+                ],
+            }
+        }, methods: {
+            handleTabRemove (name) {
+                this['tab' + name] = false;
+                    // this.tabs.splice(name, 1);
+            }
+
+
+        }
+
+    }
+    var Component = Vue.extend(Main)
+    new Component().$mount('#app')
+</script>
+</html>
